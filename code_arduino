@@ -1,0 +1,173 @@
+#include <Wire.h>
+#include <Servo.h>
+#include <string.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address
+
+
+#define IN1 22
+#define IN2 24
+#define MAX_SPEED 255 //từ 0-255
+#define MIN_SPEED 0
+
+Servo servo_day;
+Servo servo_1;
+Servo servo_2;
+
+
+int dem1, dem2, dem3;
+void motor_Dung() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+}
+void motor_Tien(int speed) { //speed: từ 0 - MAX_SPEED
+  speed = constrain(speed, MIN_SPEED, MAX_SPEED);//đảm báo giá trị nằm trong một khoảng từ 0 - MAX_SPEED - http://arduino.vn/reference/constrain
+  digitalWrite(IN1, HIGH);// chân này không có PWM
+  analogWrite(IN2, 255 - speed);
+}
+void motor_Lui(int speed) {
+  speed = constrain(speed, MIN_SPEED, MAX_SPEED);//đảm báo giá trị nằm trong một khoảng từ 0 - MAX_SPEED - http://arduino.vn/reference/constrain
+  digitalWrite(IN1, LOW);// chân này không có PWM
+  analogWrite(IN2, speed);
+}
+void setup()
+{
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  Serial.begin(9600);
+  servo_day.attach(32);
+  servo_1.attach(31);
+  servo_2.attach(30);
+
+  lcd.begin(20, 4); // Initialize LCD
+  lcd.setCursor(3, 0); // Set the cursor at the 4th column and 1st row
+  lcd.print("product1");
+  lcd.setCursor(8, 1); // Set the cursor at the 9th column and 2nd row
+  lcd.print("produc2");
+  lcd.setCursor(0, 2); // Set the cursor at the 1st column and 3rd row
+  lcd.print("product3");
+  lcd.setCursor(8, 3); // Set the cursor at the 9th column and 4th row
+  lcd.print("****");
+
+  dem1 = 0;
+  dem2 = 0;
+  dem3 = 0;
+  servo_1.write(0);
+  servo_2.write(0);
+
+  
+ for (int i = 80; i >= 0; i--)
+  {
+    servo_day.write(i);
+
+    delay(50);
+  }
+  servo_day.write(80);
+    delay(3000);
+ 
+  
+}
+void loop()
+{
+  motor_Dung();
+
+  int gt = 0;
+  delay(1000);
+  Serial.println(gt);
+
+  if (Serial.available() > 0)
+  {
+
+    String str = Serial.readString();
+    Serial.flush();
+    Serial.println(str);
+    char cstr[str.length() + 1];
+    str.toCharArray(cstr, str.length() + 1);
+
+    if (strchr(cstr, '1') != NULL)
+    {
+
+
+
+      servo_1.write(40);
+      delay(20);
+
+      motor_Tien(255);
+      delay(5000);
+
+
+      servo_1.write(0);
+      delay(20);
+
+      motor_Dung();
+
+
+      dem1 = dem1 + 1; //tang gia tri sp 1 len 1
+      lcd.setCursor(6, 0); //hien thi ra lcd
+      lcd.print(round(dem1));
+
+      //servo_day.write(80);
+      //delay(3000);
+
+    }
+
+    if (strchr(cstr, '2') != NULL)
+    {
+
+
+      servo_2.write(40);
+      delay(20);
+
+      motor_Tien(255);
+      delay(5000);
+
+
+      servo_2.write(0);
+      delay(20);
+
+      motor_Dung();
+
+
+      dem2 = dem2 + 1;
+      lcd.setCursor(10, 1); //hien thi lcd
+      lcd.print(round(dem2));
+
+      //servo_day.write(80);
+      //delay(3000);
+    }
+
+    if (strchr(cstr, '3') != NULL)
+    {
+
+
+
+
+      motor_Tien(255);
+      delay(5000);
+      motor_Dung();
+
+
+
+
+
+      dem3 = dem3 + 1; //tang gia tri sp 1 len 1
+      lcd.setCursor(2, 2); //hien thi ra lcd
+      lcd.print(round(dem1));
+
+      //servo_day.write(80);
+      //delay(3000);
+
+    }
+
+    for (int i = 80; i >= 0; i--)
+  {
+    servo_day.write(i);
+
+    delay(50);
+  }
+  servo_day.write(80);
+    delay(3000);
+ 
+  }
+}
